@@ -26,11 +26,13 @@ export async function POST(request) {
     };
 
     // Enviar email de aprovação
+    console.log('📧 Tentando enviar email para:', process.env.GMAIL_USER);
     const emailResult = await sendApprovalEmail(
       postId,
       content,
       post.approvalLink
     );
+    console.log('📧 Resultado do envio:', emailResult);
 
     // Retornar resposta
     return Response.json({
