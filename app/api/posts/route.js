@@ -1,5 +1,20 @@
 import { sendApprovalEmail } from '@/app/approve/lib/email';
 
+// ====== CORS HEADERS ======
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
+// ====== FIM CORS ======
+
+// Enviar email de aprovação
+console.log('📧 Tentando enviar email para:', process.env.GMAIL_USER);
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -40,7 +55,7 @@ export async function POST(request) {
       postId,
       message: 'Email sent successfully',
       emailSent: emailResult.success,
-    });
+    }, { headers: corsHeaders });
   } catch (error) {
     console.error('Error in POST /api/posts:', error);
     return Response.json(
