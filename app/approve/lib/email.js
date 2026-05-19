@@ -2,6 +2,10 @@ import nodemailer from 'nodemailer';
 
 export async function sendApprovalEmail(postId, postContent, approvalLink) {
   try {
+    console.log('🔍 DEBUG EMAIL CONFIG:');
+console.log('📧 GMAIL_USER:', process.env.GMAIL_USER);
+console.log('🔑 GMAIL_PASSWORD length:', process.env.GMAIL_PASSWORD?.length);
+console.log('🔑 GMAIL_PASSWORD starts with:', process.env.GMAIL_PASSWORD?.substring(0, 5));
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
