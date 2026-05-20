@@ -18,7 +18,14 @@ export async function POST(request) {
       originalContent.summary !== editedContent.summary ||
       originalContent.comment !== editedContent.comment;
 
-    // Salvar no learning system
+    // Atualizar métricas do learning system
+    if (feedbackSystem && typeof feedbackSystem.updateMetrics === 'function') {
+      feedbackSystem.updateMetrics(hasChanges ? "edited" : "approved");
+    }
+
+    // Atualizar status do post
+    updatePostStatus(postId, "approved");
+
     const feedback = {
       postId,
       originalSummary: originalContent.summary,
@@ -31,18 +38,12 @@ export async function POST(request) {
       approved: true
     };
 
-    feedbackSystem.addFeedback(feedback);
-    feedbackSystem.updateMetrics(hasChanges ? "edited" : "approved");
-
-    // Atualizar status do post
-    updatePostStatus(postId, "approved");
-
     return NextResponse.json({
       success: true,
       postId,
       hasChanges,
       feedback,
-      metrics: feedbackSystem.exportMetrics(),
+      metrics: feedbackSystem?.exportMetrics?.() || {},
       message: hasChanges ? "Post editado e aprovado" : "Post aprovado sem mudancas",
       timestamp: new Date().toISOString()
     });
