@@ -1,4 +1,8 @@
-"use client";
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+const fixedPageContent = `"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -231,4 +235,21 @@ export default function ReviewPage() {
       </div>
     </div>
   );
+}`;
+
+const filePath = path.join(__dirname, 'app/approval/review/[id]/page.js');
+const dir = path.dirname(filePath);
+
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir, { recursive: true });
 }
+
+fs.writeFileSync(filePath, fixedPageContent, 'utf8');
+console.log('✅ app/approval/review/[id]/page.js corrigido!');
+console.log('');
+console.log('Mudanças:');
+console.log('1. PostId agora é extraído corretamente da URL com usePathname');
+console.log('2. Preview mostra Resumo + Comentário + Link');
+console.log('3. Botão desabilitado até postId ser encontrado');
+console.log('');
+console.log('Próximo passo: git add . && git commit && git push');
