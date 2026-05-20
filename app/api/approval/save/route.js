@@ -1,3 +1,4 @@
+import { savePost, getPostById, updatePostStatus } from "@/lib/post-storage";
 import feedbackSystem from "@/lib/learning-feedback-system";
 import { NextResponse } from "next/server";
 
@@ -32,13 +33,17 @@ export async function POST(request) {
     feedbackSystem.addFeedback(feedback);
     feedbackSystem.updateMetrics(hasChanges ? "edited" : "approved");
 
+    // Atualizar status do post
+    updatePostStatus(postId, "approved");
+
     return NextResponse.json({
       success: true,
       postId,
       hasChanges,
       feedback,
       metrics: feedbackSystem.exportMetrics(),
-      message: hasChanges ? "Post editado e aprovado" : "Post aprovado sem mudancas"
+      message: hasChanges ? "Post editado e aprovado" : "Post aprovado sem mudancas",
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error("Erro ao salvar aprovacao:", error);

@@ -1,4 +1,43 @@
-"use client";
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+const files = {
+  'lib/post-storage.js': `// lib/post-storage.js
+// Storage em memória (para teste/demo)
+// Em produção, usar Vercel KV ou banco de dados
+
+let postsDatabase = [];
+
+export function savePost(post) {
+  post.savedAt = new Date().toISOString();
+  post.status = post.status || 'pending_approval';
+  postsDatabase.push(post);
+  return post;
+}
+
+export function getPostsByStatus(status) {
+  return postsDatabase.filter(p => p.status === status);
+}
+
+export function getPostById(postId) {
+  return postsDatabase.find(p => p.postId === postId);
+}
+
+export function updatePostStatus(postId, status) {
+  const post = postsDatabase.find(p => p.postId === postId);
+  if (post) {
+    post.status = status;
+    post.updatedAt = new Date().toISOString();
+  }
+  return post;
+}
+
+export function getAllPosts() {
+  return postsDatabase;
+}`,
+
+  'app/approval/review/[id]/page.js': `"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -169,4 +208,80 @@ export default function ReviewPage({ params }) {
       </div>
     </div>
   );
+}`,
+
+  'app/api/approval/save/route.js': `import { savePost, getPostById, updatePostStatus } from "@/lib/post-storage";
+import feedbackSystem from "@/lib/learning-feedback-system";
+import { NextResponse } from "next/server";
+
+export async function POST(request) {
+  try {
+    const { postId, originalContent, editedContent } = await request.json();
+
+    if (!postId || !originalContent || !editedContent) {
+      return NextResponse.json(
+        { error: "Dados obrigatorios: postId, originalContent, editedContent" },
+        { status: 400 }
+      );
+    }
+
+    // Comparar original vs editado
+    const hasChanges = 
+      originalContent.summary !== editedContent.summary ||
+      originalContent.comment !== editedContent.comment;
+
+    // Salvar no learning system
+    const feedback = {
+      postId,
+      originalSummary: originalContent.summary,
+      editedSummary: editedContent.summary,
+      originalComment: originalContent.comment,
+      editedComment: editedContent.comment,
+      hasChanges,
+      timestamp: new Date().toISOString(),
+      approved: true
+    };
+
+    feedbackSystem.addFeedback(feedback);
+    feedbackSystem.updateMetrics(hasChanges ? "edited" : "approved");
+
+    // Atualizar status do post
+    updatePostStatus(postId, "approved");
+
+    return NextResponse.json({
+      success: true,
+      postId,
+      hasChanges,
+      feedback,
+      metrics: feedbackSystem.exportMetrics(),
+      message: hasChanges ? "Post editado e aprovado" : "Post aprovado sem mudancas",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Erro ao salvar aprovacao:", error);
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    );
+  }
+}`
+};
+
+function updateAllFiles() {
+  Object.entries(files).forEach(([filePath, content]) => {
+    const fullPath = path.join(__dirname, filePath);
+    const dir = path.dirname(fullPath);
+    
+    if (!require('fs').existsSync(dir)) {
+      require('fs').mkdirSync(dir, { recursive: true });
+    }
+    
+    require('fs').writeFileSync(fullPath, content, 'utf8');
+    console.log('✅ ' + filePath);
+  });
+  
+  console.log('\n✅ Arquivos corrigidos com sucesso!');
+  console.log('Próximo passo: git add . && git commit && git push');
 }
+
+updateAllFiles();
