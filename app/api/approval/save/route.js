@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
-    const { postId, originalContent, editedContent } = await request.json();
+    const { postId, originalContent, editedContent, articleUrl } = await request.json();
 
     if (!postId || !originalContent || !editedContent) {
       return NextResponse.json(
@@ -25,6 +25,7 @@ export async function POST(request) {
       editedSummary: editedContent.summary,
       originalComment: originalContent.comment,
       editedComment: editedContent.comment,
+      articleUrl: articleUrl,
       hasChanges,
       timestamp: new Date().toISOString(),
       approved: true
