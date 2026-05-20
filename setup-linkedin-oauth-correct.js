@@ -289,8 +289,8 @@ export async function POST(request) {
 }`,
 
   '.env.local.example': `# LinkedIn OAuth Credentials
-LINKEDIN_CLIENT_ID=77rhlxtkhpxhy1
-LINKEDIN_CLIENT_SECRET=WPL_AP1.rWzinH5JJJOVRtRt.EF9NsA==
+LINKEDIN_CLIENT_ID=YOUR_CLIENT_ID
+LINKEDIN_CLIENT_SECRET=YOUR_CLIENT_SECRET
 
 # Vercel KV
 KV_URL=your_kv_url
@@ -321,8 +321,8 @@ function createAllFiles() {
   console.log('   → Copiar as 4 env vars');
   console.log('');
   console.log('2. ADICIONAR ENV VARS NO VERCEL:');
-  console.log('   LINKEDIN_CLIENT_ID=77rhlxtkhpxhy1');
-  console.log('   LINKEDIN_CLIENT_SECRET=WPL_AP1.rWzinH5JJJOVRtRt.EF9NsA==');
+  console.log('   LINKEDIN_CLIENT_ID=YOUR_CLIENT_ID');
+  console.log('   LINKEDIN_CLIENT_SECRET=YOUR_CLIENT_SECRET');
   console.log('   KV_URL=...');
   console.log('   KV_REST_API_URL=...');
   console.log('   KV_REST_API_TOKEN=...');
