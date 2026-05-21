@@ -1,10 +1,10 @@
-import { posts } from "@/lib/post-storage";
+import { getPostById } from "@/lib/post-storage";
 import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
   try {
     const { id } = params;
-    const post = posts[id];
+    const post = getPostById(id);
     
     if (!post) {
       return NextResponse.json(
