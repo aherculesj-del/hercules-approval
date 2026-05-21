@@ -51,13 +51,13 @@ export default function ReviewPage({ params }) {
 
         <div style={{ background: "white", padding: "20px", marginBottom: "20px", borderLeft: "4px solid #E8A020", borderRadius: "4px" }}>
           <h3 style={{ color: "#0d1f3c", margin: "0 0 10px" }}>📄 RESUMO</h3>
-          <textarea value={summary} onChange={(e) => setSummary(e.target.value)} style={{ width: "100%", height: "80px", padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontFamily: "Arial" }} placeholder="Resumo da matéria..." />
+          <textarea value={summary} onChange={(e) => setSummary(e.target.value)} style={{ width: "100%", height: "700px", padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontFamily: "Arial", resize: "vertical" }} placeholder="Resumo da matéria..." />
           <p style={{ fontSize: "12px", color: "#666", margin: "5px 0 0" }}>2-3 linhas</p>
         </div>
 
         <div style={{ background: "white", padding: "20px", marginBottom: "20px", borderLeft: "4px solid #E8A020", borderRadius: "4px" }}>
           <h3 style={{ color: "#0d1f3c", margin: "0 0 10px" }}>💭 PERSPECTIVA VIRTUS MIRAI</h3>
-          <textarea value={comment} onChange={(e) => setComment(e.target.value)} style={{ width: "100%", height: "120px", padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontFamily: "Arial" }} placeholder="Sua perspectiva..." />
+          <textarea value={comment} onChange={(e) => setComment(e.target.value)} style={{ width: "100%", height: "500px", padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontFamily: "Arial", resize: "vertical" }} placeholder="Sua perspectiva..." />
           <p style={{ fontSize: "12px", color: "#666", margin: "5px 0 0" }}>150-200 palavras</p>
         </div>
 
