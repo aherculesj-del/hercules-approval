@@ -1,4 +1,4 @@
-﻿import { generatePostContent } from "@/lib/claude-service";
+import { generatePostContent } from "@/lib/claude-service";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 
@@ -17,13 +17,9 @@ export async function GET(request) {
     }
 
     const postId = `test-${Date.now()}`;
-    const encodedData = encodeURIComponent(JSON.stringify({
-      title: postData.title,
-      summary: postData.summary,
-      comment: postData.comment,
-      question: postData.question,
-    }));
-    const dashboardUrl = `https://hercules-approval.vercel.app/approval/review/${postId}?data=${encodedData}`;
+    
+    // Guardar dados no sessionStorage via cookie (solucao simples)
+    const dashboardUrl = `https://hercules-approval.vercel.app/approval/review/${postId}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -33,7 +29,7 @@ export async function GET(request) {
       },
     });
 
-    const htmlContent = `<html><body style="font-family:Arial"><div style="background:#0d1f3c;color:white;padding:30px"><h1>Virtus Mirai - TESTE IA</h1></div><div style="padding:30px"><div style="background:white;padding:20px;border-left:4px solid #E8A020"><h2>${postData.title}</h2><p>${postData.summary}</p><p>${postData.comment}</p><p>${postData.question}</p><a href="${dashboardUrl}" style="display:inline-block;background:#0d1f3c;color:white;padding:12px 30px;text-decoration:none;margin-top:20px">Revisar</a></div></div></body></html>`;
+    const htmlContent = `<html><body style="font-family:Arial"><div style="background:#0d1f3c;color:white;padding:30px"><h1>Virtus Mirai - TESTE IA</h1></div><div style="padding:30px"><div style="background:white;padding:20px;border-left:4px solid #E8A020"><h2>${postData.title}</h2><p><b>RESUMO:</b></p><p>${postData.summary}</p><p><b>PERSPECTIVA:</b></p><p>${postData.comment}</p><p><b>PERGUNTA:</b> ${postData.question}</p><a href="${dashboardUrl}" style="display:inline-block;background:#0d1f3c;color:white;padding:12px 30px;text-decoration:none;margin-top:20px">Revisar no Dashboard</a></div></div></body></html>`;
 
     await transporter.sendMail({
       from: process.env.GMAIL_USER,
@@ -42,7 +38,17 @@ export async function GET(request) {
       html: htmlContent,
     });
 
-    return NextResponse.json({ success: true, postId, dashboardUrl, articleUsed: article.title, timestamp: new Date().toISOString() });
+    return NextResponse.json({
+      success: true,
+      postId,
+      dashboardUrl,
+      title: postData.title,
+      summary: postData.summary,
+      comment: postData.comment,
+      question: postData.question,
+      articleUsed: article.title,
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
     console.error("Erro:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
