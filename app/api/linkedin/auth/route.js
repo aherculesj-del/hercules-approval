@@ -1,22 +1,12 @@
-// app/api/linkedin/auth/route.js
-// GET /api/linkedin/auth
-// Inicia o fluxo OAuth2
-
-import { getAuthorizationUrl } from "@/lib/linkedin-service";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
-  try {
-    const authUrl = getAuthorizationUrl();
-    
-    console.log("🔗 Redirecionando para LinkedIn OAuth...");
-    
-    return NextResponse.redirect(authUrl);
-  } catch (error) {
-    console.error("Erro:", error);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
-  }
+  const clientId = process.env.LINKEDIN_CLIENT_ID;
+  const redirectUri = "https://hercules-approval.vercel.app/api/linkedin/auth/callback";
+  const scope = "w_member_social";
+  const state = Math.random().toString(36).substring(7);
+
+  const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
+
+  return NextResponse.redirect(authUrl);
 }
