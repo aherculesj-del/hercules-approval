@@ -2,6 +2,8 @@ import { generatePostContent } from "@/lib/claude-service";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 
+const postCache = new Map();
+
 export async function GET(request) {
   try {
     const article = {
@@ -18,7 +20,13 @@ export async function GET(request) {
 
     const postId = `test-${Date.now()}`;
     
-    // Guardar dados no sessionStorage via cookie (solucao simples)
+    postCache.set(postId, {
+      title: postData.title,
+      summary: postData.summary,
+      comment: postData.comment,
+      question: postData.question
+    });
+
     const dashboardUrl = `https://hercules-approval.vercel.app/approval/review/${postId}`;
 
     const transporter = nodemailer.createTransport({
@@ -38,19 +46,13 @@ export async function GET(request) {
       html: htmlContent,
     });
 
-    return NextResponse.json({
-      success: true,
-      postId,
-      dashboardUrl,
-      title: postData.title,
-      summary: postData.summary,
-      comment: postData.comment,
-      question: postData.question,
-      articleUsed: article.title,
-      timestamp: new Date().toISOString()
-    });
+    return NextResponse.json({ success: true, postId, dashboardUrl, timestamp: new Date().toISOString() });
   } catch (error) {
     console.error("Erro:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+}
+
+export function getPostCache(postId) {
+  return postCache.get(postId);
 }
