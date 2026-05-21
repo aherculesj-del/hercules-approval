@@ -1,5 +1,6 @@
-﻿import { kv } from "@vercel/kv";
 import { NextResponse } from "next/server";
+
+const postCache = new Map();
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -9,16 +10,15 @@ export async function GET(request) {
     return NextResponse.json({ error: "ID nao fornecido" }, { status: 400 });
   }
   
-  try {
-    const data = await kv.get(postId);
-    
-    if (!data) {
-      return NextResponse.json({ error: "Post nao encontrado" }, { status: 404 });
-    }
-    
-    return NextResponse.json(JSON.parse(data));
-  } catch (error) {
-    console.error("Erro ao buscar do KV:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  const data = postCache.get(postId);
+  
+  if (!data) {
+    return NextResponse.json({ error: "Post nao encontrado" }, { status: 404 });
   }
+  
+  return NextResponse.json(data);
+}
+
+export function setPostCache(postId, data) {
+  postCache.set(postId, data);
 }

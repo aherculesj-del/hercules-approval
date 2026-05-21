@@ -1,7 +1,8 @@
 import { generatePostContent } from "@/lib/claude-service";
 import nodemailer from "nodemailer";
-import { kv } from "@vercel/kv";
 import { NextResponse } from "next/server";
+
+const postCache = new Map();
 
 export async function GET(request) {
   try {
@@ -19,12 +20,12 @@ export async function GET(request) {
 
     const postId = `test-${Date.now()}`;
     
-    await kv.set(postId, JSON.stringify({
+    postCache.set(postId, {
       title: postData.title,
       summary: postData.summary,
       comment: postData.comment,
       question: postData.question
-    }), { ex: 86400 });
+    });
 
     const dashboardUrl = `https://hercules-approval.vercel.app/approval/review/${postId}`;
 
@@ -50,4 +51,8 @@ export async function GET(request) {
     console.error("Erro:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+}
+
+export function getPostCache(postId) {
+  return postCache.get(postId);
 }
