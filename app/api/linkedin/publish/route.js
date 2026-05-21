@@ -1,6 +1,6 @@
 // app/api/linkedin/publish/route.js
 // POST /api/linkedin/publish
-// Publica um post no LinkedIn
+// Publica um post no LinkedIn (página Virtus Mirai) com TÍTULO e perspectiva
 
 import { publishToLinkedIn, refreshAccessToken } from "@/lib/linkedin-service";
 import { kv } from "@vercel/kv";
@@ -41,16 +41,20 @@ async function getValidAccessToken() {
 
 export async function POST(request) {
   try {
-    const { postContent } = await request.json();
+    const body = await request.json();
+    const { postContent } = body;
 
-    if (!postContent || !postContent.comment || !postContent.articleUrl) {
+    // Validar campos obrigatórios (agora com TÍTULO)
+    if (!postContent) {
       return NextResponse.json(
         { 
-          error: "postContent com comment, summary e articleUrl são obrigatórios",
+          error: "postContent é obrigatório",
           example: {
             postContent: {
-              comment: "Seu comentário aqui",
-              summary: "Resumo do artigo",
+              title: "O custo oculto de governança de dados",
+              summary: "Resumo do artigo em 2-3 linhas",
+              comment: "Perspectiva Virtus Mirai em 150-200 palavras",
+              question: "Sua pergunta provocadora?",
               articleUrl: "https://example.com/article"
             }
           }
@@ -59,16 +63,54 @@ export async function POST(request) {
       );
     }
 
+    if (!postContent.title || !postContent.comment || !postContent.articleUrl) {
+      return NextResponse.json(
+        { 
+          error: "postContent deve incluir: title, summary, comment, question, articleUrl",
+          received: postContent
+        },
+        { status: 400 }
+      );
+    }
+
     const accessToken = await getValidAccessToken();
     
-    console.log("📤 Publicando no LinkedIn...");
-    const result = await publishToLinkedIn(accessToken, postContent);
+    console.log("📤 Publicando no LinkedIn (página Virtus Mirai)...");
+    
+    // Construir texto do post com TÍTULO
+    const linkedinText = `${postContent.title}
+
+${postContent.comment}
+
+${postContent.question}
+
+📖 Leia o artigo original: ${postContent.articleUrl}
+
+---
+Virtus Mirai Consultoria
+Estratégia • Governança • Transformação Digital`;
+
+    const result = await publishToLinkedIn(accessToken, {
+      comment: linkedinText,
+      summary: postContent.summary,
+      articleUrl: postContent.articleUrl,
+      title: postContent.title
+    });
+
+    console.log("✅ Post publicado no LinkedIn");
 
     return NextResponse.json({
       success: true,
       message: "Post publicado no LinkedIn com sucesso!",
       linkedinPostId: result.id,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      postData: {
+        title: postContent.title,
+        summary: postContent.summary,
+        comment: postContent.comment,
+        question: postContent.question,
+        articleUrl: postContent.articleUrl
+      }
     });
   } catch (error) {
     console.error("❌ Erro ao publicar:", error);
