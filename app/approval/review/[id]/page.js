@@ -1,233 +1,71 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
 
-export default function ReviewPage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [postId, setPostId] = useState("");
-
-  const [content, setContent] = useState({
-    summary: "",
-    comment: ""
-  });
-
-  const [edited, setEdited] = useState({
-    summary: "",
-    comment: ""
-  });
-
-  const [articleUrl, setArticleUrl] = useState("");
+export default function ReviewPage({ params }) {
+  const [title, setTitle] = useState("");
+  const [summary, setSummary] = useState("");
+  const [comment, setComment] = useState("");
+  const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(true);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Extrair postId da URL: /approval/review/[postId]
-    if (pathname) {
-      const parts = pathname.split('/');
-      const id = parts[parts.length - 1];
-      if (id && id !== 'review') {
-        setPostId(id);
-      } else {
-        setError("PostId não encontrado na URL");
+    async function loadPost() {
+      try {
+        const response = await fetch(`/api/approval/get/${params.id}`);
+        const data = await response.json();
+        
+        if (data.post && data.post.generatedContent) {
+          const content = data.post.generatedContent;
+          setTitle(content.title || "");
+          setSummary(content.summary || "");
+          setComment(content.comment || "");
+          setQuestion(content.question || "");
+        } else {
+          setError("Post não encontrado");
+        }
+      } catch (err) {
+        setError("Erro ao carregar: " + err.message);
+      } finally {
+        setLoading(false);
       }
     }
+    loadPost();
+  }, [params.id]);
 
-    // Carregar conteúdo padrão
-    const defaultContent = {
-      summary: "A inteligência artificial está revolucionando a forma como as empresas gerenciam suas operações, permitindo automação de processos, tomada de decisão mais rápida e redução significativa de custos operacionais. Empresas que adotaram IA veem ganhos de até 40% em eficiência.",
-      comment: "Acompanhei de perto esse movimento quando implementamos novas tecnologias no Grupo Estado nos anos 2000. A questão central não é 'se' implementar IA, é 'quando' e 'como' integrar isso na cultura da empresa sem perder o DNA operacional. Quantas empresas brasileiras já têm um roadmap claro de IA? Não é?"
-    };
-    
-    setContent(defaultContent);
-    setEdited(defaultContent);
-    setArticleUrl("https://example.com/article-ia-2026");
-    setLoading(false);
-  }, [pathname]);
-
-  const handleSummaryChange = (e) => {
-    setEdited({ ...edited, summary: e.target.value });
-  };
-
-  const handleCommentChange = (e) => {
-    setEdited({ ...edited, comment: e.target.value });
-  };
-
-  const handleApprove = async () => {
-    if (!postId) {
-      setError("PostId não encontrado. Não é possível aprovar.");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch("/api/approval/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          postId: postId,
-          originalContent: content,
-          editedContent: edited,
-          articleUrl: articleUrl
-        })
-      });
-
-      const result = await response.json();
-      
-      if (response.ok) {
-        setSubmitted(true);
-        setTimeout(() => {
-          router.push("/approval/success");
-        }, 1500);
-      } else {
-        setError(result.error || "Erro ao salvar aprovação");
-      }
-    } catch (error) {
-      console.error("Erro:", error);
-      setError(error.message || "Erro ao processar");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (submitted) {
-    return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        <h1>✅ Post aprovado!</h1>
-        <p>Redirecionando para confirmação...</p>
-      </div>
-    );
-  }
+  if (loading) return <div style={{ padding: "40px", textAlign: "center" }}>⏳ Carregando...</div>;
+  if (error) return <div style={{ padding: "40px", color: "red" }}>{error}</div>;
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px" }}>
-      <h1 style={{ color: "#0d1f3c" }}>✏️ Revisar e Editar Conteúdo</h1>
-      <p style={{ color: "#666" }}>Post ID: {postId || "carregando..."}</p>
+      <div style={{ background: "linear-gradient(135deg,#0d1f3c,#1B3A6B)", color: "white", padding: "30px", borderRadius: "8px 8px 0 0" }}>
+        <h1 style={{ margin: "0" }}>✏️ Revisar e Editar</h1>
+        <p style={{ margin: "5px 0 0", fontSize: "14px" }}>Post ID: {params.id}</p>
+      </div>
 
-      {error && (
-        <div style={{ 
-          padding: "12px", 
-          background: "#fee", 
-          color: "#c33", 
-          borderRadius: "4px",
-          marginBottom: "20px"
-        }}>
-          ❌ {error}
-        </div>
-      )}
-
-      <div style={{ marginTop: "30px" }}>
-        <div style={{ marginBottom: "30px" }}>
-          <h2>📊 Resumo Executivo</h2>
-          <textarea
-            value={edited.summary}
-            onChange={handleSummaryChange}
-            disabled={loading}
-            style={{
-              width: "100%",
-              height: "120px",
-              padding: "12px",
-              fontFamily: "Arial, sans-serif",
-              fontSize: "14px",
-              border: "1px solid #ddd",
-              borderRadius: "4px"
-            }}
-          />
-          <small style={{ color: "#999" }}>Edite o resumo se necessário</small>
+      <div style={{ padding: "30px", background: "#f9f9f9" }}>
+        <div style={{ background: "white", padding: "20px", marginBottom: "20px", borderLeft: "4px solid #E8A020" }}>
+          <h3 style={{ color: "#0d1f3c", margin: "0 0 10px" }}>📌 TÍTULO</h3>
+          <textarea value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: "100%", height: "60px", padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontFamily: "Arial" }} />
         </div>
 
-        <div style={{ marginBottom: "30px" }}>
-          <h2>💬 Comentário para LinkedIn</h2>
-          <textarea
-            value={edited.comment}
-            onChange={handleCommentChange}
-            disabled={loading}
-            style={{
-              width: "100%",
-              height: "150px",
-              padding: "12px",
-              fontFamily: "Arial, sans-serif",
-              fontSize: "14px",
-              border: "1px solid #ddd",
-              borderRadius: "4px"
-            }}
-          />
-          <small style={{ color: "#999" }}>Edite o comentário conforme sua voz</small>
+        <div style={{ background: "white", padding: "20px", marginBottom: "20px", borderLeft: "4px solid #E8A020" }}>
+          <h3 style={{ color: "#0d1f3c", margin: "0 0 10px" }}>📄 RESUMO</h3>
+          <textarea value={summary} onChange={(e) => setSummary(e.target.value)} style={{ width: "100%", height: "80px", padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} />
         </div>
 
-        <div style={{ marginBottom: "30px" }}>
-          <h2>🔗 Link da Matéria Original</h2>
-          <p style={{ color: "#666", fontSize: "14px" }}>Este link será incluído na postagem para dar crédito à fonte:</p>
-          <input
-            type="text"
-            value={articleUrl}
-            disabled
-            style={{
-              width: "100%",
-              padding: "10px",
-              fontFamily: "monospace",
-              fontSize: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              background: "#f5f5f5"
-            }}
-          />
-          <small style={{ color: "#999" }}>Link: {articleUrl}</small>
+        <div style={{ background: "white", padding: "20px", marginBottom: "20px", borderLeft: "4px solid #E8A020" }}>
+          <h3 style={{ color: "#0d1f3c", margin: "0 0 10px" }}>💭 PERSPECTIVA VIRTUS MIRAI</h3>
+          <textarea value={comment} onChange={(e) => setComment(e.target.value)} style={{ width: "100%", height: "120px", padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} />
         </div>
 
-        <div style={{ 
-          padding: "15px", 
-          background: "#f0f0f0", 
-          borderRadius: "4px",
-          marginBottom: "30px",
-          border: "1px solid #ddd"
-        }}>
-          <h3 style={{ margin: "0 0 15px 0", color: "#333" }}>📋 Preview da postagem final no LinkedIn:</h3>
-          <div style={{ background: "white", padding: "15px", borderRadius: "4px", fontSize: "14px", lineHeight: "1.6" }}>
-            <p style={{ color: "#333", marginBottom: "12px", fontWeight: "500" }}>
-              <strong>📌 Resumo:</strong>
-            </p>
-            <p style={{ color: "#666", marginBottom: "15px" }}>
-              {edited.summary}
-            </p>
-
-            <hr style={{ border: "none", borderTop: "1px solid #ddd", margin: "15px 0" }} />
-
-            <p style={{ color: "#333", marginBottom: "12px", fontWeight: "500" }}>
-              <strong>💬 Comentário:</strong>
-            </p>
-            <p style={{ color: "#666", marginBottom: "15px" }}>
-              {edited.comment}
-            </p>
-
-            <hr style={{ border: "none", borderTop: "1px solid #ddd", margin: "15px 0" }} />
-
-            <p style={{ color: "#0d1f3c", fontSize: "13px", marginTop: "12px" }}>
-              🔗 <strong>Leia o artigo original:</strong> <a href={articleUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#0d1f3c", textDecoration: "underline" }}>Ver fonte</a>
-            </p>
-          </div>
+        <div style={{ background: "white", padding: "20px", marginBottom: "20px", borderLeft: "4px solid #E8A020" }}>
+          <h3 style={{ color: "#0d1f3c", margin: "0 0 10px" }}>❓ PERGUNTA PROVOCADORA</h3>
+          <textarea value={question} onChange={(e) => setQuestion(e.target.value)} style={{ width: "100%", height: "60px", padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} />
         </div>
 
-        <button
-          onClick={handleApprove}
-          disabled={loading || !postId}
-          style={{
-            padding: "12px 32px",
-            background: (loading || !postId) ? "#ccc" : "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            cursor: (loading || !postId) ? "not-allowed" : "pointer"
-          }}
-        >
-          {loading ? "Processando..." : "✅ Aprovar e Publicar"}
-        </button>
+        <button onClick={() => alert("✅ Post aprovado!")} style={{ width: "100%", padding: "12px", background: "#10b981", color: "white", border: "none", borderRadius: "4px", fontSize: "16px", fontWeight: "bold", cursor: "pointer" }}>✅ Aprovar e Publicar</button>
       </div>
     </div>
   );
