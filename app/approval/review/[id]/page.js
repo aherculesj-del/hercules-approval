@@ -9,6 +9,7 @@ export default function ReviewPage() {
   const [summary, setSummary] = useState("");
   const [comment, setComment] = useState("");
   const [question, setQuestion] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
 
   useEffect(() => {
     setTitle(searchParams.get("title") || "");
@@ -16,6 +17,39 @@ export default function ReviewPage() {
     setComment(searchParams.get("comment") || "");
     setQuestion(searchParams.get("question") || "");
   }, [searchParams]);
+
+  async function handlePublish() {
+    const confirmed = confirm("📱 Publicar este post no LinkedIn da Virtus Mirai?");
+    if (!confirmed) return;
+
+    setIsPublishing(true);
+    try {
+      const response = await fetch("/api/approval/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId: params.id,
+          title,
+          summary,
+          comment,
+          question
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(`✅ ${result.message}\n\n🔗 ${result.linkedinUrl}`);
+        window.location.href = result.linkedinUrl;
+      } else {
+        alert(`❌ Erro: ${result.error}\n\n${result.details ? JSON.stringify(result.details) : ""}`);
+      }
+    } catch (error) {
+      alert(`❌ Erro ao publicar: ${error.message}`);
+    } finally {
+      setIsPublishing(false);
+    }
+  }
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px" }}>
@@ -50,7 +84,24 @@ export default function ReviewPage() {
             <div style={{ color: "#0099ff", textDecoration: "underline", fontSize: "13px" }}>🔗 Leia o artigo original</div>
           </div>
         </div>
-        <button onClick={() => alert("✅ Post aprovado!")} style={{ width: "100%", padding: "14px", background: "#10b981", color: "white", border: "none", borderRadius: "4px", fontSize: "16px", fontWeight: "bold", cursor: "pointer" }}>✅ Aprovar e Publicar</button>
+        <button 
+          onClick={handlePublish}
+          disabled={isPublishing}
+          style={{ 
+            width: "100%", 
+            padding: "14px", 
+            background: isPublishing ? "#cccccc" : "#10b981", 
+            color: "white", 
+            border: "none", 
+            borderRadius: "4px", 
+            fontSize: "16px", 
+            fontWeight: "bold", 
+            cursor: isPublishing ? "not-allowed" : "pointer",
+            opacity: isPublishing ? 0.7 : 1
+          }}
+        >
+          {isPublishing ? "⏳ Publicando..." : "✅ Aprovar e Publicar no LinkedIn"}
+        </button>
       </div>
     </div>
   );
