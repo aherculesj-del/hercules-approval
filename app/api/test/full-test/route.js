@@ -1,8 +1,7 @@
 import { generatePostContent } from "@/lib/claude-service";
+import { setPost } from "@/lib/post-cache";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
-
-const postCache = new Map();
 
 export async function GET(request) {
   try {
@@ -20,7 +19,7 @@ export async function GET(request) {
 
     const postId = `test-${Date.now()}`;
     
-    postCache.set(postId, {
+    setPost(postId, {
       title: postData.title,
       summary: postData.summary,
       comment: postData.comment,
@@ -51,8 +50,4 @@ export async function GET(request) {
     console.error("Erro:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
-
-export function getPostCache(postId) {
-  return postCache.get(postId);
 }
