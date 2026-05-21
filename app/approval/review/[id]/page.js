@@ -1,33 +1,22 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+
 export default function ReviewPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [comment, setComment] = useState("");
   const [question, setQuestion] = useState("");
-  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    async function loadPost() {
-      try {
-        const response = await fetch(`/api/approval/get-post?id=${params.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setTitle(data.title || "");
-          setSummary(data.summary || "");
-          setComment(data.comment || "");
-          setQuestion(data.question || "");
-        }
-      } catch (error) {
-        console.error("Erro:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadPost();
-  }, [params.id]);
-  if (loading) return <div style={{ padding: "40px", textAlign: "center" }}>⏳ Carregando...</div>;
+    setTitle(searchParams.get("title") || "");
+    setSummary(searchParams.get("summary") || "");
+    setComment(searchParams.get("comment") || "");
+    setQuestion(searchParams.get("question") || "");
+  }, [searchParams]);
+
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px" }}>
       <div style={{ background: "linear-gradient(135deg,#0d1f3c,#1B3A6B)", color: "white", padding: "30px", borderRadius: "8px 8px 0 0" }}>

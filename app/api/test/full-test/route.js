@@ -1,5 +1,4 @@
 import { generatePostContent } from "@/lib/claude-service";
-import { setPost } from "@/lib/post-cache";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 
@@ -19,14 +18,14 @@ export async function GET(request) {
 
     const postId = `test-${Date.now()}`;
     
-    setPost(postId, {
+    const params = new URLSearchParams({
       title: postData.title,
       summary: postData.summary,
       comment: postData.comment,
       question: postData.question
     });
 
-    const dashboardUrl = `https://hercules-approval.vercel.app/approval/review/${postId}`;
+    const dashboardUrl = `https://hercules-approval.vercel.app/approval/review/${postId}?${params.toString()}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
