@@ -41,7 +41,7 @@ ${question}
           "LinkedIn-Version": "202401"
         },
         body: JSON.stringify({
-          author: `urn:li:organization:${process.env.LINKEDIN_ORG_ID}`,
+          author: `urn:li:person:${process.env.LINKEDIN_USER_ID}`,
           lifecycleState: "PUBLISHED",
           specificContent: {
             "com.linkedin.ugc.PublishContent": {
