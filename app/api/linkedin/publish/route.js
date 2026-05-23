@@ -2,14 +2,11 @@
 // POST /api/linkedin/publish
 // Publica um post no LinkedIn com TÍTULO e perspectiva
 import { publishToLinkedIn, refreshAccessToken } from "@/lib/linkedin-service";
-import { Redis } from "@upstash/redis";
+import Redis from "ioredis";
 import { NextResponse } from "next/server";
  
-// Criar cliente Redis (Upstash)
-const redis = new Redis({
-  url: process.env.KV_REDIS_URL,
-  token: process.env.KV_REDIS_URL
-});
+// Criar cliente Redis com ioredis
+const redis = new Redis(process.env.KV_REDIS_URL);
  
 async function getValidAccessToken() {
   try {
