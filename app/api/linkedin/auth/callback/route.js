@@ -1,11 +1,9 @@
-import { Redis } from "@upstash/redis";
+// app/api/linkedin/auth/callback/route.js
+import Redis from "ioredis";
 import { NextResponse } from "next/server";
  
-// Criar cliente Redis
-const redis = new Redis({
-  url: process.env.KV_REDIS_URL,
-  token: process.env.KV_REDIS_URL
-});
+// Criar cliente Redis com ioredis
+const redis = new Redis(process.env.KV_REDIS_URL);
  
 export async function GET(request) {
   try {
@@ -48,11 +46,9 @@ export async function GET(request) {
       );
     }
  
-    // ✅ Salvar token no Redis (Upstash)
+    // ✅ Salvar token no Redis com ioredis
     try {
-      await redis.set("linkedin_access_token", data.access_token, {
-        ex: data.expires_in
-      });
+      await redis.setex("linkedin_access_token", data.expires_in, data.access_token);
  
       // Também salvar refresh token se disponível
       if (data.refresh_token) {
