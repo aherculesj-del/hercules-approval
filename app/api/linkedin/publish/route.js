@@ -1,19 +1,18 @@
 // app/api/linkedin/publish/route.js
 // POST /api/linkedin/publish
-// Publica um post no LinkedIn (página Virtus Mirai) com TÍTULO e perspectiva
+// Publica um post no LinkedIn com TÍTULO e perspectiva
 import { publishToLinkedIn, refreshAccessToken } from "@/lib/linkedin-service";
-import { createClient } from 'redis';
+import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
  
-// Criar cliente Redis
-const redis = createClient({
-  url: process.env.KV_REDIS_URL
+// Criar cliente Redis (Upstash)
+const redis = new Redis({
+  url: process.env.KV_REDIS_URL,
+  token: process.env.KV_REDIS_URL
 });
  
 async function getValidAccessToken() {
   try {
-    await redis.connect();
-    
     let accessToken = await redis.get("linkedin_access_token");
     
     if (!accessToken) {
@@ -21,7 +20,7 @@ async function getValidAccessToken() {
     }
     
     // Verificar se token está próximo de expirar (refresh 1 dia antes)
-    const tokenAge = parseInt(await redis.get("linkedin_token_age") || "0");
+    const tokenAge = parseInt((await redis.get("linkedin_token_age")) || "0");
     const oneDay = 86400; // segundos
     
     if (tokenAge > oneDay) {
@@ -35,17 +34,15 @@ async function getValidAccessToken() {
       const newTokenData = await refreshAccessToken(refreshToken);
       accessToken = newTokenData.access_token;
       
-      await redis.setEx("linkedin_access_token", newTokenData.expires_in, accessToken);
+      await redis.setex("linkedin_access_token", newTokenData.expires_in, accessToken);
       await redis.del("linkedin_token_age");
       
       console.log("✅ Token renovado");
     }
     
-    await redis.disconnect();
     return accessToken;
   } catch (error) {
     console.error("Erro ao obter token:", error);
-    await redis.disconnect();
     throw error;
   }
 }
@@ -86,7 +83,7 @@ export async function POST(request) {
     
     const accessToken = await getValidAccessToken();
     
-    console.log("📤 Publicando no LinkedIn (página Virtus Mirai)...");
+    console.log("📤 Publicando no LinkedIn...");
     
     // Construir texto do post com TÍTULO
     const linkedinText = `${postContent.title}
